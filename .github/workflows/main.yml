@@ -1,17 +1,16 @@
-name: Mega Bot Subrek One Shot
+name: Bot Subrek All-In-One
 
 on: 
   workflow_dispatch:
 
 jobs:
-  execution:
+  mission-start:
     runs-on: ubuntu-latest
     steps:
-      - name: Install Selenium & Driver
-        run: |
-          pip install selenium webdriver-manager
+      - name: Install Selenium
+        run: pip install selenium webdriver-manager
 
-      - name: Create Python Bot
+      - name: Build & Run Bot
         run: |
           cat <<EOF > bot.py
           from selenium import webdriver
@@ -23,55 +22,56 @@ jobs:
           import random
           import string
 
-          def random_string(length=8):
-              return ''.join(random.choices(string.ascii_lowercase + string.digits, k=length))
+          def random_str(length=6):
+              return ''.join(random.choices(string.ascii_lowercase, k=length))
 
           options = webdriver.ChromeOptions()
           options.add_argument('--headless')
           options.add_argument('--no-sandbox')
-          options.add_argument(f'user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36')
+          options.add_argument('--disable-dev-shm-usage')
+          options.add_argument('user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36')
 
           driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
 
-          def main():
+          def execute():
               try:
-                  # 1. MENUJU HALAMAN DAFTAR GMAIL
-                  print("Membuka halaman pendaftaran...")
+                  # 1. PROSES BIKIN AKUN / LOGIN (Logika Sakti Kamu)
+                  print("Membuka Google Signup...")
                   driver.get("https://accounts.google.com/signup")
                   time.sleep(3)
-
-                  # 2. ISI FORM (Logika Random)
-                  user_rand = random_string(10)
-                  print(f"Mencoba daftar dengan user: {user_rand}")
                   
-                  # Contoh isi nama depan (selector bisa berubah tergantung update Google)
+                  # Isi Nama (Contoh)
                   driver.find_element(By.NAME, "firstName").send_keys("User")
-                  driver.find_element(By.NAME, "lastName").send_keys(user_rand)
-                  driver.find_element(By.XPATH, "//span[contains(text(), 'Next')]").click()
-                  time.sleep(2)
+                  driver.find_element(By.NAME, "lastName").send_keys(random_str())
+                  driver.find_element(By.XPATH, "//span[contains(text(), 'Next') or contains(text(), 'Berikutnya')]").click()
+                  time.sleep(3)
+                  print("Proses registrasi berjalan...")
 
-                  # --- DI SINI LANJUTAN LOGIKA KAMU ---
-                  # Karena kamu ga kena verifikasi, kamu tinggal lanjutin isi 
-                  # tanggal lahir, username, dan password di sini.
-
-                  # 3. SETELAH LOGIN, GAS SUBREK
-                  print("Meluncur ke TKP YouTube...")
+                  # 2. GAS KE LINK YOUTUBE
+                  print("Meluncur ke link YouTube target...")
                   driver.get("https://youtube.com/@asipver123?si=PUEr2IJ_hlz7Tznz")
                   time.sleep(5)
-                  
-                  sub_button = driver.find_element(By.XPATH, "//span[contains(text(), 'Subscribe')]")
-                  sub_button.click()
-                  print("SUBREK BERHASIL, BOSKU!")
+
+                  # 3. KLIK SUBREK (Pencarian Ganda)
+                  try:
+                      # Cari tombol pake aria-label (lebih stabil di server luar)
+                      sub_btn = driver.find_element(By.CSS_SELECTOR, "button[aria-label*='Subscribe'], button[aria-label*='Subskripsi']")
+                      sub_btn.click()
+                      print("MANTAP! Tombol Subrek diklik!")
+                  except:
+                      # Cadangan kalau CSS Selector gagal
+                      sub_btn = driver.find_element(By.XPATH, "//button//span[contains(text(), 'Sub')]")
+                      sub_btn.click()
+                      print("Subrek lewat jalur cadangan sukses!")
 
               except Exception as e:
-                  print(f"Ada kendala: {e}")
+                  print(f"Waduh ada kendala: {e}")
               finally:
+                  print("Misi selesai, runner otomatis mati.")
                   driver.quit()
 
           if __name__ == "__main__":
-              main()
+              execute()
           EOF
-
-      - name: Running The Mission
-        run: python bot.py
-        
+          
+          python bot.py
